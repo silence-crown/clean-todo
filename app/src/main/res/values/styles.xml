@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="CustomDialogStyle" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="android:textColor">#FFFFFF</item> <!-- Set text color to white -->
+        <item name="android:windowBackground">@drawable/add_dialogue_background</item>
+    </style>
+
+    <style name="CustomButtonStyle" parent="Widget.AppCompat.Button">
+        <!-- Customize button attributes as needed -->
+        <item name="android:background">@drawable/button_outline_background</item>
+        <item name="android:textColor">@android:color/white</item>
+        <!-- Add more attributes like padding, text appearance, etc. -->
+    </style>
+
+
+
+</resources>
