@@ -21,12 +21,31 @@
         android:textColor="@color/white"
         android:textColorHint="@color/grey" />
 
-    <Button
-        android:id="@+id/saveButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:text="SAVE"
-        style="@style/CustomButtonStyle"/>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/saveButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="SAVE"
+            style="@style/CustomButtonStyle"/>
+
+        <Button
+            android:id="@+id/upButton"
+            style="@style/CustomButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="20dp"
+            android:minWidth="50dp"
+            android:minHeight="50dp"
+            android:visibility="invisible"
+            android:text="UP" />
+
+    </RelativeLayout>
 
 </LinearLayout>

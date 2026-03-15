@@ -21,8 +21,10 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var taskContainer: LinearLayout
     private lateinit var addButton: FloatingActionButton
-    private lateinit var sharedPreferences: SharedPreferences // ?
+    private lateinit var sharedPreferences: SharedPreferences
     private lateinit var saveButton: FloatingActionButton
+    private lateinit var upButton: FloatingActionButton
+    private val tasks = mutableListOf<String>()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,24 +53,15 @@ class MainActivity : AppCompatActivity() {
         val tasksJson = sharedPreferences.getString("tasks", null)
         if (!tasksJson.isNullOrEmpty()) {
             val tasksType = object : TypeToken<List<String>>() {}.type
-            val tasks = Gson().fromJson<List<String>>(tasksJson, tasksType)
-            tasks.reversed().forEach { taskText ->
-                addTask(taskText)
-            }
+            val loaded = Gson().fromJson<List<String>>(tasksJson, tasksType)
+            tasks.clear()
+            loaded.reversed().forEach { addTask(it) }
         }
     }
 
     private fun saveTasks() {
-        val tasks = mutableListOf<String>()
-        for (i in 0 until taskContainer.childCount) {
-            val taskView = taskContainer.getChildAt(i)
-            val textView = taskView.findViewById<TextView>(R.id.taskTextView)
-            val taskText = textView.text.toString()
-            tasks.add(taskText)
-        }
         val tasksJson = Gson().toJson(tasks)
         sharedPreferences.edit().putString("tasks", tasksJson).apply()
-
         showSnackbar(taskContainer, "Successfully saved")
     }
 
@@ -76,6 +69,7 @@ class MainActivity : AppCompatActivity() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_layout, null)
         val editText = dialogView.findViewById<EditText>(R.id.editText)
         val saveButton = dialogView.findViewById<Button>(R.id.saveButton)
+        var validTask = true
 
         editText.requestFocus()
 
@@ -85,9 +79,9 @@ class MainActivity : AppCompatActivity() {
 
         saveButton.setOnClickListener {
             val taskText = editText.text.toString()
-            addTask(taskText)
+            validTask = addTask(taskText)
             dialog.dismiss()
-            saveTasks()
+            if (validTask) { saveTasks() }
         }
 
         dialog.show()
@@ -96,7 +90,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     @SuppressLint("InflateParams")
-    private fun addTask(taskText: String) {
+    private fun addTask(taskText: String): Boolean {
         val trimmedText = taskText.trim()
         if (trimmedText.isNotBlank()) {
             val taskView = LayoutInflater.from(this).inflate(R.layout.task_item, taskContainer, false )
@@ -114,20 +108,23 @@ class MainActivity : AppCompatActivity() {
                 true
             }
 
-
             taskContainer.addView(taskView, 0)
 
+            tasks.add(0, trimmedText)
+
+            return true
         }
+        return false
     }
 
 
     private fun deleteTask(taskView: View) {
+        val textView = taskView.findViewById<TextView>(R.id.taskTextView)
+        tasks.remove(textView.text.toString())
         taskView.animate()
             .alpha(0f)
             .setDuration(300)
-            .withEndAction {
-                taskContainer.removeView(taskView)
-            }
+            .withEndAction { taskContainer.removeView(taskView) }
     }
 
 
@@ -135,6 +132,10 @@ class MainActivity : AppCompatActivity() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_layout, null)
         val editText = dialogView.findViewById<EditText>(R.id.editText)
         val saveButton = dialogView.findViewById<Button>(R.id.saveButton)
+        val upButton = dialogView.findViewById<Button>(R.id.upButton)
+
+        upButton.visibility = View.VISIBLE;
+
         editText.setText(textView.text)
 
         editText.requestFocus()
@@ -150,6 +151,20 @@ class MainActivity : AppCompatActivity() {
             saveTasks()
         }
 
+        upButton.setOnClickListener {
+            val index = tasks.indexOf(textView.text.toString())
+            if (index > 0) {
+                // Move to top in data list
+                val item = tasks.removeAt(index)
+                tasks.add(0, item)
+                // Move to top in views
+                val taskView = taskContainer.getChildAt(index)
+                taskContainer.removeView(taskView)
+                taskContainer.addView(taskView, 0)
+            }
+            dialog.dismiss()
+        }
+
         dialog.show()
 
         dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
@@ -157,10 +172,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun editTask(textView: TextView, editedText: String) {
         val trimmedText = editedText.trim()
+        val index = tasks.indexOf(textView.text.toString())
         if (trimmedText.isNotBlank()) {
             textView.text = trimmedText
+            if (index != -1) tasks[index] = trimmedText
         } else {
-            taskContainer.removeView(textView)
+            if (index != -1) tasks.removeAt(index)
+            taskContainer.removeView(textView.parent as View)
         }
     }
 
